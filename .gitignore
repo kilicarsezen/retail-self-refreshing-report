@@ -52,3 +52,9 @@ Desktop.ini
 *.log
 *.sqlite
 *.sqlite3
+
+# Local data files
+/data/
+
+# Generated analysis reports
+/reports/
