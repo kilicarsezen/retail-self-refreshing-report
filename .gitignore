@@ -58,3 +58,6 @@ Desktop.ini
 
 # Generated analysis reports
 /reports/
+
+# Claude Code local session/worktree state
+.claude/
