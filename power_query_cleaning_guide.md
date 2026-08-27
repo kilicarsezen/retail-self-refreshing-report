@@ -6,13 +6,13 @@ The notebook is exploration-only — it never touches the raw data and its decis
 production pipeline: every step below should be built as a Power Query transformation, so the
 report can refresh itself as new data lands.
 
-**Production data shape:** the client uploads one Excel file per month into `data/raw/`. Each
-file is a single sheet, covers one calendar month, and has no built-in overlap with any other
-file — unlike the historical two-sheet `online_retail_II.xlsx` workbook this pipeline was
-originally built against. `split_into_monthly_raw.py` seeds `data/raw/` with that historical data
-in the shape production will actually use (one `Retail_YYYY-MM.xlsx` file per month, sheet
-overlap already resolved) — see that script for how the demo data was produced. Power Query
-itself should never load the two-sheet workbook or know it exists.
+**Production data shape:** the client uploads one CSV file per month into `data/raw/`. Each file
+covers one calendar month and has no built-in overlap with any other file — unlike the historical
+two-sheet `online_retail_II.xlsx` workbook this pipeline was originally built against.
+`split_into_monthly_raw.py` seeds `data/raw/` with that historical data in the shape production
+will actually use (one `Retail_YYYY-MM.csv` file per month, sheet overlap already resolved) — see
+that script for how the demo data was produced. Power Query itself should never load the
+two-sheet workbook or know it exists.
 
 Each section names the report decision it implements (`§7.x`), gives the **rule**, the
 **Power Query steps** (ribbon actions), and the exact **M formula** to type into the Custom
@@ -29,22 +29,29 @@ deleted.
 ## 0. Load and combine the monthly raw files
 
 1. `Get Data` → `Folder` → point at `data/raw`.
-2. `Filter Rows` on `Extension` → keep `= ".xlsx"` (drops Excel lock files like `~$Retail_...` and
-   anything else that isn't a data file).
+2. `Filter Rows` on `Extension` → keep `= ".csv"` (excludes anything else that isn't a data file).
 3. Use `Combine Files` on the `Content` column. Power Query auto-generates a sample query and a
-   `Transform Sample File` function — leave the default (`Excel.Workbook([Content]){0}[Data]`,
-   i.e. the first/only sheet of each file) since every monthly file has exactly one sheet.
+   `Transform Sample File` function — leave the default (`Csv.Document([Content], [Delimiter=",",
+   Encoding=65001])` followed by `Table.PromoteHeaders`), since every monthly file has the same
+   header row and delimiter.
 4. This produces one combined table, `Retail_Combined`, with a `Source.Name` column carrying each
-   row's originating filename (e.g. `Retail_2010-12.xlsx`) — needed by Step 1 below. Keep this
+   row's originating filename (e.g. `Retail_2010-12.csv`) — needed by Step 1 below. Keep this
    column; don't remove it in the combine step's default column cleanup.
-5. Do all of the following steps on `Retail_Combined`, in order.
+5. **Set column types explicitly** — unlike the old Excel source, CSV carries no type metadata,
+   so every column comes in as text. Use `Transform` → `Data Type` on each column: `Quantity` →
+   Whole Number, `Price` → Decimal Number, `Customer ID` → Whole Number, `InvoiceDate` → Date/Time
+   (values are `yyyy-MM-dd HH:mm:ss`, e.g. `2010-12-01 08:26:00` — Power Query's automatic
+   detection usually gets this right, but confirm it rather than assuming). Leave `Invoice`,
+   `StockCode`, `Description`, `Country` as Text. Do this once, right after combine, so every step
+   below sees correctly typed columns.
+6. Do all of the following steps on `Retail_Combined`, in order.
 
 ---
 
 ## 1. Drop rows that landed in the wrong month's file (§7.0)
 
 **Rule:** Each raw file is named for the month it's supposed to cover
-(`Retail_YYYY-MM.xlsx`). If a monthly upload includes a record whose `InvoiceDate` belongs to a
+(`Retail_YYYY-MM.csv`). If a monthly upload includes a record whose `InvoiceDate` belongs to a
 different month than its filename says — a resend, a stray day from an adjacent period, the same
 overlap pattern the original two-sheet workbook had — that record isn't this file's data to
 contribute. Drop it here; it either already exists in (or will arrive in) the file actually named

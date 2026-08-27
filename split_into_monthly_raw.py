@@ -29,15 +29,20 @@ def drop_sheet_overlap(combined: pd.DataFrame) -> pd.DataFrame:
         f"Dropped {int(is_stale_overlap_copy.sum()):,} rows that were the Year 2009-2010 copy "
         "of an overlapping invoice."
     )
-    return combined.loc[~is_stale_overlap_copy].drop(columns="SourceSheet")
+    kept = combined.loc[~is_stale_overlap_copy].drop(columns="SourceSheet")
+    # Customer ID has missing values so pandas reads it as float64; without this it would
+    # write as "17850.0" instead of "17850" once it hits CSV (Excel's numeric formatting
+    # hid the trailing ".0", CSV has no such formatting layer).
+    kept["Customer ID"] = kept["Customer ID"].astype("Int64")
+    return kept
 
 
 def split_by_month(rows: pd.DataFrame, output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True)
     month_key = pd.to_datetime(rows["InvoiceDate"]).dt.strftime("%Y-%m")
     for month, month_rows in rows.groupby(month_key):
-        out_path = output_dir / f"{FILENAME_PREFIX}_{month}.xlsx"
-        month_rows.to_excel(out_path, index=False, sheet_name="Data")
+        out_path = output_dir / f"{FILENAME_PREFIX}_{month}.csv"
+        month_rows.to_csv(out_path, index=False)
         print(f"{out_path.name}: {len(month_rows):,} rows")
 
 
@@ -61,7 +66,7 @@ def main() -> None:
         "--output-dir",
         type=Path,
         default=Path("data/raw"),
-        help="Directory to write monthly workbooks into.",
+        help="Directory to write monthly CSV files into.",
     )
     args = parser.parse_args()
 
