@@ -56,8 +56,12 @@ Desktop.ini
 # Local data files
 /data/
 
-# Generated analysis reports
-/reports/
+# Generated analysis reports (keep the written report, drop the CSV output)
+/reports/*
+!/reports/*.md
 
 # Claude Code local session/worktree state
 .claude/
+
+# Held-back monthly exports (data, not code)
+/archive/
