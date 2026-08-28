@@ -68,6 +68,8 @@ Desktop.ini
 
 # Claude Code local session/worktree state
 .claude/
+CLAUDE.md
+power_bi_build_instructions.md
 
 # Held-back monthly exports (data, not code)
 /archive/

@@ -142,7 +142,7 @@
                 "Property": "Net Margin %"
               }
             },
-            "direction": "Ascending"
+            "direction": "Descending"
           }
         ]
       }
