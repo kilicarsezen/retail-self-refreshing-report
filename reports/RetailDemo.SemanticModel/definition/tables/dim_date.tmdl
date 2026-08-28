@@ -1,0 +1,68 @@
+table dim_date
+	lineageTag: 0ada0d67-d92d-4824-8935-4cc4828f7e51
+	dataCategory: Time
+
+	column Date
+		isUnique
+		lineageTag: eab84db5-4ef0-4ed5-87fd-12685b7bb045
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+		variation Variation
+			isDefault
+			relationship: 28a03ba8-c235-430a-8906-f80ac97c8e28
+			defaultHierarchy: LocalDateTable_e2a6029e-054e-4aa5-8b98-c4a04b4a378f.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year = YEAR([Date])
+		dataType: int64
+		lineageTag: 3eeda99b-de57-4188-97cc-023ee4ea6c63
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month Number' = MONTH([Date])
+		dataType: int64
+		lineageTag: dced882e-fd7a-4cd1-ba08-eee4c0060a94
+		summarizeBy: sum
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month Name' = FORMAT([Date], "MMMM")
+		dataType: string
+		lineageTag: 42153404-1d1c-4448-ad4a-95a246fc1e2f
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column Year-Month = FORMAT([Date], "yyyy-MM")
+		dataType: string
+		lineageTag: 4d2684bb-2a94-4eec-857e-ce0500d75e9a
+		summarizeBy: none
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Week Start' = dim_date[Date] - WEEKDAY(dim_date[Date], 2) + 1
+		dataType: dateTime
+		formatString: Short Date
+		lineageTag: 798555f3-a9ff-4a7d-834b-2f9d7fd66db3
+		summarizeBy: none
+
+	column IsLatestMonth = VAR MaxDate = CALCULATE( MAX( dim_date[Date] ), ALL( dim_date ) ) RETURN dim_date[Year] = YEAR( MaxDate ) && dim_date[Month Number] = MONTH( MaxDate )
+		dataType: boolean
+		lineageTag: e6854e45-41b9-49ae-a6ff-088518a080fe
+
+	column DaysInWeek = CALCULATE( COUNTROWS( dim_date ), ALLEXCEPT( dim_date, dim_date[Week Start] ) )
+		dataType: int64
+		lineageTag: 54218c71-c495-4d58-a36b-7c9d77220898
+
+	column IsCompleteWeek = dim_date[DaysInWeek] = 7
+		dataType: boolean
+		lineageTag: 3cf9f7b1-6dad-4cef-bd9d-761783ff2592
+
+	partition dim_date = calculated
+		mode: import
+		source = CALENDAR(MIN(fact_sales[InvoiceDate]), MAX(fact_sales[InvoiceDate]))
+

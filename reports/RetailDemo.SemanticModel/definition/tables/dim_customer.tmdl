@@ -1,0 +1,37 @@
+table dim_customer
+	lineageTag: f52cedb7-fa29-4375-b002-8a54faffbb73
+
+	column 'Customer ID'
+		dataType: double
+		formatString: 0
+		lineageTag: 9d31aa57-5a1e-41a1-93ec-be49f5358e97
+		summarizeBy: none
+		sourceColumn: Customer ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsGuest
+		dataType: boolean
+		lineageTag: 5bd9062f-4d6f-4be1-919f-a4ce68e3cb07
+		sourceColumn: IsGuest
+
+	column 'Customer Display' = IF( dim_customer[Customer ID] = -1, "Guest", FORMAT( dim_customer[Customer ID], "0" ) )
+		dataType: string
+		lineageTag: f6f76e10-9944-4882-96d1-393159924de0
+
+	partition dim_customer = m
+		mode: import
+		source =
+				let
+				    Source = Retail_Stage,
+				    #"Kept Customer ID" = Table.SelectColumns(Source, {"Customer ID"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Kept Customer ID"),
+				    #"Replaced Null with Guest Key" = Table.ReplaceValue(#"Removed Duplicates", null, -1, Replacer.ReplaceValue, {"Customer ID"}),
+				    #"Added IsGuest" = Table.AddColumn(#"Replaced Null with Guest Key", "IsGuest", each [#"Customer ID"] = -1, type logical)
+				in
+				    #"Added IsGuest"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Exception
+

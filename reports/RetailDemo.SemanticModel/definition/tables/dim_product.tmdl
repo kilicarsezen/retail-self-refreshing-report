@@ -1,0 +1,53 @@
+table dim_product
+	lineageTag: 68bcce72-c6be-43ce-84c2-717457f32f1f
+
+	column StockCode
+		dataType: string
+		lineageTag: 1c1754e9-cb39-4407-9388-e30a6aa388c2
+		summarizeBy: none
+		sourceColumn: StockCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsNonProductCode
+		dataType: boolean
+		formatString: """TRUE"";""TRUE"";""FALSE"""
+		lineageTag: d0117be1-b3ae-43f3-84ea-d1536a1ee26b
+		summarizeBy: none
+		sourceColumn: IsNonProductCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: e8655e43-4a7b-453d-833d-6a11958891d0
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition dim_product = m
+		mode: import
+		source =
+				let
+				    Source = Retail_Stage,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"StockCode", "Description", "InvoiceDate", "IsNonProductCode"}),
+				    #"Grouped Rows" = Table.Group(#"Removed Other Columns", {"StockCode", "Description", "IsNonProductCode"}, {{"WordingCount", each Table.RowCount(_), Int64.Type}, {"LastSeen", each List.Max([InvoiceDate]), type nullable datetime}}),
+				    #"Grouped Rows1" = Table.Group(#"Grouped Rows", {"StockCode", "IsNonProductCode"}, {{"TotalRows", each List.Sum([WordingCount]), type number}, {"AllWordings", each _, type table [StockCode=nullable text, Description=nullable text, IsNonProductCode=logical, WordingCount=number, LastSeen=nullable datetime]}}),
+				    #"Added Custom" = Table.AddColumn(#"Grouped Rows1", "ModalRow", each Table.Max([AllWordings], "WordingCount")),
+				    #"Added Custom1" = Table.AddColumn(#"Added Custom", "LatestRow", each Table.Max(
+				    Table.SelectRows([AllWordings], each [Description] <> null and Text.Trim([Description]) <> ""),
+				    "LastSeen"
+				  )),
+				    #"Added Custom2" = Table.AddColumn(#"Added Custom1", "ModalShare ", each [ModalRow][WordingCount] / [TotalRows]),
+				    #"Added Custom3" = Table.AddColumn(#"Added Custom2", "Description", each if [#"ModalShare "] >= 0.95 and ([ModalRow][Description] = null or Text.Trim([ModalRow][Description]) = "") then [StockCode]
+				  else if [#"ModalShare "] >= 0.95 then [ModalRow][Description]
+				  else [LatestRow][Description]),
+				    #"Removed Columns" = Table.RemoveColumns(#"Added Custom3",{"TotalRows", "AllWordings", "ModalRow", "LatestRow", "ModalShare "})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

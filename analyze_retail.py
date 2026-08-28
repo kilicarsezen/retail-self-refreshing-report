@@ -1,3 +1,16 @@
+"""SUPERSEDED -- kept for history, not part of the active pipeline.
+
+This was the first exploratory pass at the Online Retail II workbook, before any of the
+data-quality findings in reports/analysis_report.md were known: it treats "starts with C"
+as the only kind of cancellation, has no concept of stock adjustments, write-ins, free
+items, or bad debt, and doesn't handle the sheet-overlap duplication at all.
+
+explore_retail.ipynb replaced this entirely and is the sole source of truth for every
+cleaning decision from here on (see power_query_cleaning_guide.md, which is built from
+the notebook's findings, not from this script's). Left in the repo to show how the
+analysis actually evolved, not as something to run for a current answer.
+"""
+
 from __future__ import annotations
 
 import argparse

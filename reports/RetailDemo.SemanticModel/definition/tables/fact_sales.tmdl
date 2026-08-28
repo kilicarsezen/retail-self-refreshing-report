@@ -1,0 +1,169 @@
+table fact_sales
+	lineageTag: 9754adcc-d4e2-4683-8e75-0e98c8206108
+
+	column Invoice
+		dataType: string
+		lineageTag: 4fe2ea64-aa7a-4993-ac8d-c506251d8c18
+		summarizeBy: none
+		sourceColumn: Invoice
+
+		annotation SummarizationSetBy = Automatic
+
+	column StockCode
+		dataType: string
+		lineageTag: 06f877ef-a8d3-4b99-900b-7fa6876c1c2f
+		summarizeBy: none
+		sourceColumn: StockCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer ID'
+		dataType: int64
+		lineageTag: 12efdb14-6a09-4278-a48a-bd9e7e1f4f53
+		summarizeBy: none
+		sourceColumn: Customer ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column InvoiceDate
+		dataType: dateTime
+		lineageTag: fd81cceb-6462-4374-863d-5eb23a8a46ba
+		summarizeBy: none
+		sourceColumn: InvoiceDate
+
+		variation Variation
+			isDefault
+			relationship: 0af74649-3252-4422-adff-e6f9046de5b8
+			defaultHierarchy: LocalDateTable_637a5f43-d46a-4501-963d-02754e626e9b.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: int64
+		lineageTag: 884d3444-20b1-43b8-936d-dbd40ef1d69a
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column Price
+		dataType: double
+		lineageTag: 6c388a92-bb66-4ac7-ba93-1fe388a03db0
+		summarizeBy: sum
+		sourceColumn: Price
+
+		annotation SummarizationSetBy = Automatic
+
+	column Revenue
+		dataType: double
+		lineageTag: b924ba32-922b-4b7f-add3-f08802d6474c
+		summarizeBy: sum
+		sourceColumn: Revenue
+
+		annotation SummarizationSetBy = Automatic
+
+	column Country
+		dataType: string
+		lineageTag: 8280a70b-f3da-4e75-8ba5-7881ee71e86b
+		summarizeBy: none
+		sourceColumn: Country
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: ab9e39f9-6b98-4cb0-a587-9d03b730fab9
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsCancelled
+		dataType: boolean
+		lineageTag: f5c22f29-10ae-43c8-a534-3aeeb997e4c5
+		summarizeBy: none
+		sourceColumn: IsCancelled
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsBadDebtAdjustment
+		dataType: boolean
+		lineageTag: ac2ad792-ef4d-4b2c-a33d-25a071bc88bb
+		summarizeBy: none
+		sourceColumn: IsBadDebtAdjustment
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsStockAdjustment
+		dataType: boolean
+		lineageTag: c768a966-9657-47aa-8f38-372f72ccfc58
+		summarizeBy: none
+		sourceColumn: IsStockAdjustment
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsStockWritein
+		dataType: boolean
+		lineageTag: 44c9e073-0f23-4162-b6b2-e45af48bad2e
+		summarizeBy: none
+		sourceColumn: IsStockWritein
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsFreeItem
+		dataType: boolean
+		lineageTag: 5d8e0cf4-bd88-4299-aab1-8ca3cb3afe5a
+		summarizeBy: none
+		sourceColumn: IsFreeItem
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsNonProductCode
+		dataType: boolean
+		lineageTag: f736dffa-386d-4f49-bb55-28be9db8768c
+		summarizeBy: none
+		sourceColumn: IsNonProductCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsNonCountry
+		dataType: boolean
+		lineageTag: bd3c867a-8ccc-4317-89e5-afea1c03816e
+		summarizeBy: none
+		sourceColumn: IsNonCountry
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsDuplicateLine
+		dataType: boolean
+		lineageTag: 15fe9b8c-8ceb-4d3c-9b51-fea669ed895b
+		summarizeBy: none
+		sourceColumn: IsDuplicateLine
+
+		annotation SummarizationSetBy = Automatic
+
+	column InvoiceDateOnly
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: bfa50a83-b2b7-4d30-8208-ab494003b5d9
+		summarizeBy: none
+		sourceColumn: InvoiceDateOnly
+
+		annotation UnderlyingDateTimeDataType = Date
+
+		annotation SummarizationSetBy = Automatic
+
+	partition fact_sales = m
+		mode: import
+		source =
+				let
+				    Source = Retail_Stage,
+				    #"Removed Description" = Table.RemoveColumns(Source, {"Description"}),
+				    #"Replaced Null Customer ID" = Table.ReplaceValue(#"Removed Description", null, -1, Replacer.ReplaceValue, {"Customer ID"}),
+				    #"Removed Helper Columns" = Table.RemoveColumns(#"Replaced Null Customer ID", {"Source.Name", "GroupCount"}),
+				    #"Kept Columns" = Table.SelectColumns(#"Removed Helper Columns", {"Invoice", "StockCode", "Customer ID", "InvoiceDate", "Quantity", "Price", "Revenue", "Country", "Category", "IsCancelled", "IsBadDebtAdjustment", "IsStockAdjustment", "IsStockWritein", "IsFreeItem", "IsNonProductCode", "IsNonCountry", "IsDuplicateLine"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Kept Columns", {{"Invoice", type text}, {"StockCode", type text}, {"Customer ID", Int64.Type}, {"InvoiceDate", type datetime}, {"Quantity", Int64.Type}, {"Price", type number}, {"Revenue", type number}, {"Country", type text}, {"Category", type text}, {"IsCancelled", type logical}, {"IsBadDebtAdjustment", type logical}, {"IsStockAdjustment", type logical}, {"IsStockWritein", type logical}, {"IsFreeItem", type logical}, {"IsNonProductCode", type logical}, {"IsNonCountry", type logical}, {"IsDuplicateLine", type logical}}, "en-US"),
+				    #"Added InvoiceDateOnly" = Table.AddColumn(#"Changed Type", "InvoiceDateOnly", each DateTime.Date([InvoiceDate]), type date)
+				in
+				    #"Added InvoiceDateOnly"
+

@@ -1,0 +1,35 @@
+relationship 190670e1-46ce-4d98-a336-bd56661df3d1
+	joinOnDateBehavior: datePartOnly
+	fromColumn: Retail_Stage.InvoiceDate
+	toColumn: LocalDateTable_0ea7fd24-f4cf-4a5f-a77d-faa2116c345d.Date
+
+relationship 'fact_sales_Customer ID_dim_customer_Customer ID'
+	fromColumn: fact_sales.'Customer ID'
+	toColumn: dim_customer.'Customer ID'
+
+relationship fact_sales_Country_dim_country_Country
+	fromColumn: fact_sales.Country
+	toColumn: dim_country.Country
+
+relationship fact_sales_InvoiceDateOnly_dim_date_Date
+	fromColumn: fact_sales.InvoiceDateOnly
+	toColumn: dim_date.Date
+
+relationship fact_sales_StockCode_dim_product_StockCode
+	fromColumn: fact_sales.StockCode
+	toColumn: dim_product.StockCode
+
+relationship 0af74649-3252-4422-adff-e6f9046de5b8
+	joinOnDateBehavior: datePartOnly
+	fromColumn: fact_sales.InvoiceDate
+	toColumn: LocalDateTable_637a5f43-d46a-4501-963d-02754e626e9b.Date
+
+relationship 28a03ba8-c235-430a-8906-f80ac97c8e28
+	joinOnDateBehavior: datePartOnly
+	fromColumn: dim_date.Date
+	toColumn: LocalDateTable_e2a6029e-054e-4aa5-8b98-c4a04b4a378f.Date
+
+relationship fact_sales_StockCode_dim_product_cost_StockCode
+	fromColumn: fact_sales.StockCode
+	toColumn: dim_product_cost.StockCode
+

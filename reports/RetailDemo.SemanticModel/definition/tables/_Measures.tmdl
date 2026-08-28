@@ -1,0 +1,201 @@
+table _Measures
+	lineageTag: 8574bcc7-f89a-4de1-b289-6a0455bef003
+
+	measure Revenue =
+			CALCULATE(
+			    SUM( fact_sales[Revenue] ),
+			    fact_sales[Category] IN {"normal_sale", "free_item"}
+			)
+		formatString: £#,##0
+		displayFolder: Revenue
+		lineageTag: 55b6139d-b6be-451a-bef6-82dc266dc5b1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Cancellations = CALCULATE( SUM( fact_sales[Revenue] ), fact_sales[Category] = "cancelled" )
+		formatString: £#,##0
+		displayFolder: Revenue
+		lineageTag: df89f31d-527a-4f7c-9d12-012edc5ffc93
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Net Revenue' = [Revenue] + [Cancellations]
+		formatString: £#,##0
+		displayFolder: Revenue
+		lineageTag: 1f15dd57-ee2c-465d-afdb-2a2d0e927331
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure COGS =
+			CALCULATE(
+			    SUMX( fact_sales, fact_sales[Quantity] * RELATED( dim_product_cost[CostPerUnit] ) ),
+			    fact_sales[Category] IN {"normal_sale", "free_item"}
+			)
+		formatString: £#,##0
+		displayFolder: COGS
+		lineageTag: e82bb732-0abc-4bc1-974a-453c006eb66e
+
+	measure 'Revenue without cost data' =
+			CALCULATE(
+			    SUM( fact_sales[Revenue] ),
+			    fact_sales[Category] IN {"normal_sale", "free_item"},
+			    FILTER( fact_sales, ISBLANK( RELATED( dim_product_cost[CostPerUnit] ) ) )
+			)
+		formatString: £#,##0
+		displayFolder: COGS
+		lineageTag: 753d6a18-8d60-4258-8a9b-1e025c72da1c
+
+	measure 'Gross Margin' = [Revenue] - [COGS]
+		formatString: £#,##0
+		displayFolder: COGS
+		lineageTag: 7377db5a-ac55-46a1-99d2-55b94d43c85e
+
+	measure 'Gross Margin %' = DIVIDE( [Gross Margin], [Revenue] )
+		formatString: 0.0%
+		displayFolder: COGS
+		lineageTag: 861a7130-6c4a-4201-9dd5-1dde8c236128
+
+	measure 'COGS Cancellations' =
+			CALCULATE(
+			    SUMX( fact_sales, fact_sales[Quantity] * RELATED( dim_product_cost[CostPerUnit] ) ),
+			    fact_sales[Category] = "cancelled"
+			)
+		formatString: £#,##0
+		displayFolder: COGS
+		lineageTag: 6c486809-50c7-4b35-a127-e8cb288ded97
+
+	measure 'Net COGS' = [COGS] + [COGS Cancellations]
+		formatString: £#,##0
+		displayFolder: COGS
+		lineageTag: b7fcb36d-9612-41cf-9729-99b0b228b293
+
+	measure 'Net Margin' = [Net Revenue] - [Net COGS]
+		formatString: £#,##0
+		displayFolder: COGS
+		lineageTag: 79b80fc6-549e-4a4f-82fe-2dc29c148bc4
+
+	measure 'Net Margin %' = DIVIDE( [Net Margin], [Net Revenue] )
+		formatString: 0.0%
+		displayFolder: COGS
+		lineageTag: 2d6da836-d806-4793-acbc-23d949fb4edf
+
+	measure 'Stock Adjustment Revenue' = CALCULATE( SUM( fact_sales[Revenue] ), fact_sales[Category] = "stock_adjustment" )
+		formatString: £#,##0
+		displayFolder: Excluded
+		lineageTag: bf21f3f1-8501-49c2-9247-a13a0899f3f8
+
+	measure 'Stock Adjustment Cost' =
+			CALCULATE(
+			    SUMX( fact_sales, fact_sales[Quantity] * RELATED( dim_product_cost[CostPerUnit] ) ),
+			    fact_sales[Category] = "stock_adjustment"
+			)
+		formatString: £#,##0
+		displayFolder: Excluded
+		lineageTag: 42018bdb-7558-481f-ac40-edd94e3c44f2
+
+	measure 'Stock Writein Revenue' = CALCULATE( SUM( fact_sales[Revenue] ), fact_sales[Category] = "stock_writein" )
+		formatString: £#,##0
+		displayFolder: Excluded
+		lineageTag: 92ec2d61-875f-4e83-84c5-14a062d93e94
+
+	measure 'Stock Writein Cost' =
+			CALCULATE(
+			    SUMX( fact_sales, fact_sales[Quantity] * RELATED( dim_product_cost[CostPerUnit] ) ),
+			    fact_sales[Category] = "stock_writein"
+			)
+		formatString: £#,##0
+		displayFolder: Excluded
+		lineageTag: dca13927-d2ec-413a-b3b5-8657fd79abfd
+
+	measure 'Bad Debt Revenue' = CALCULATE( SUM( fact_sales[Revenue] ), fact_sales[Category] = "bad_debt_adjustment" )
+		formatString: £#,##0
+		displayFolder: Excluded
+		lineageTag: 4b8f3720-df6a-48ef-8c03-26e2d00c0057
+
+	measure 'Bad Debt Cost' =
+			CALCULATE(
+			    SUMX( fact_sales, fact_sales[Quantity] * RELATED( dim_product_cost[CostPerUnit] ) ),
+			    fact_sales[Category] = "bad_debt_adjustment"
+			)
+		formatString: £#,##0
+		displayFolder: Excluded
+		lineageTag: 32957fee-a3ee-40d8-a960-9486db16b753
+
+	measure Orders =
+			CALCULATE(
+			    DISTINCTCOUNT( fact_sales[Invoice] ),
+			    fact_sales[Category] IN {"normal_sale", "free_item"}
+			)
+		displayFolder: Revenue
+		lineageTag: e9bf23f5-fb99-4736-aa63-5fbeddf4b2f6
+
+	measure AOV = DIVIDE( [Net Revenue], [Orders] )
+		formatString: £#,##0
+		displayFolder: Revenue
+		lineageTag: f9e2bfcf-01c8-48f3-b85b-d496b405b715
+
+	measure 'Net Revenue LY' = CALCULATE( [Net Revenue], SAMEPERIODLASTYEAR( dim_date[Date] ) )
+		formatString: £#,##0
+		displayFolder: Time Intelligence
+		lineageTag: 7f0ed4dd-a7ee-4324-aef4-79b27b7380df
+
+	measure 'YoY %' = DIVIDE( [Net Revenue] - [Net Revenue LY], [Net Revenue LY] )
+		formatString: 0.0%
+		displayFolder: Time Intelligence
+		lineageTag: 88bf1c7e-a104-462b-8469-c24cdec29b0e
+
+	measure 'Latest Week Cutoff' = VAR LatestCompleteWeek = CALCULATE( MAX( dim_date[Week Start] ), FILTER( ALL( dim_date ), dim_date[IsCompleteWeek] = TRUE() ) ) RETURN LatestCompleteWeek - 12*7
+		displayFolder: Visual Helpers
+		lineageTag: cb101630-4f12-4861-9bf2-65a1afe18cba
+
+	measure 'Product Margin Rank' = RANKX( FILTER( ALL( dim_product ), dim_product[IsNonProductCode] = FALSE() ), [Net Margin], , DESC )
+		displayFolder: Visual Helpers
+		lineageTag: d080897c-db0b-4c9c-8855-b0f7b6f455aa
+
+	measure 'UK Revenue' = CALCULATE( [Net Revenue], dim_country[Country] = "United Kingdom" )
+		formatString: £#,##0
+		displayFolder: Revenue
+		lineageTag: e877a529-180a-48ba-ad91-eefb78ce61fa
+
+	measure 'Country Revenue Rank' = RANKX( FILTER( ALL( dim_country ), dim_country[Country] <> "United Kingdom" ), CALCULATE( [Net Revenue] ), , DESC )
+		displayFolder: Visual Helpers
+		lineageTag: bc5b39d4-1a95-4af0-b6b0-5743cbb057f0
+
+	measure 'Latest Month Year' = YEAR( CALCULATE( MAX( dim_date[Date] ), ALL( dim_date ) ) )
+		displayFolder: Visual Helpers
+		lineageTag: a31cb909-9d40-4ce6-81bf-df2f83f01ac8
+
+	measure 'Latest Month Number' = MONTH( CALCULATE( MAX( dim_date[Date] ), ALL( dim_date ) ) )
+		displayFolder: Visual Helpers
+		lineageTag: f0bce521-2a49-4521-a608-0fabdac1688c
+
+	measure 'Period Label' = FORMAT( CALCULATE( MAX( dim_date[Date] ), ALL( dim_date ) ), "MMMM YYYY" )
+		displayFolder: Visual Helpers
+		lineageTag: 211d60b5-39d1-4593-83f0-38e48802aa60
+
+	measure Quantity = CALCULATE( SUM( fact_sales[Quantity] ), fact_sales[Category] IN {"normal_sale", "free_item", "cancelled"} )
+		formatString: #,##0
+		displayFolder: Revenue
+		lineageTag: 339bce61-6a54-4fd7-b5aa-8591060bf8d3
+
+	measure 'Margin Headline' = FORMAT( [Net Margin %], "0%" ) & " margin in " & [Period Label]
+		displayFolder: Visual Helpers
+		lineageTag: c42c8002-864b-4265-99fe-8ca6960e125e
+
+	measure 'UK Share Headline' = FORMAT( DIVIDE( [UK Revenue], [Net Revenue] ), "0%" ) & " of revenue was UK in " & [Period Label]
+		displayFolder: Visual Helpers
+		lineageTag: a64e2988-14f8-4946-8f91-ed00ef558a4a
+
+	partition _Measures = m
+		mode: import
+		source =
+				let
+				  Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Removed Columns" = Table.RemoveColumns(Source,{"Column1"})
+				in
+				  #"Removed Columns"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

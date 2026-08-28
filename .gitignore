@@ -56,9 +56,15 @@ Desktop.ini
 # Local data files
 /data/
 
-# Generated analysis reports (keep the written report, drop the CSV output)
-/reports/*
-!/reports/*.md
+# Power BI report: track the git-friendly PBIP project source (RetailDemo.pbip,
+# RetailDemo.Report/, RetailDemo.SemanticModel/) since that's the whole point of
+# the PBIP format -- diffable, reviewable model/report definitions. Exclude the
+# compiled .pbix binary (not diff-friendly, regenerable by opening the .pbip in
+# Desktop) and the local, machine-specific/data-cache files Desktop writes
+# alongside the source.
+/reports/*.pbix
+/reports/*/.pbi/cache.abf
+/reports/*/.pbi/localSettings.json
 
 # Claude Code local session/worktree state
 .claude/

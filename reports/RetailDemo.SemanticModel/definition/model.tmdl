@@ -1,0 +1,30 @@
+model Model
+	culture: en-GB
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-DE
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_ProTooling = ["MCP-PBIModeling","DevMode"]
+
+annotation PBI_QueryOrder = ["dim_product","dim_customer","Retail_Stage","fact_sales","dim_country","_Measures"]
+
+ref table Retail_Stage
+ref table DateTableTemplate_75fa6272-d54c-48ff-93e3-88a67833e6e1
+ref table LocalDateTable_0ea7fd24-f4cf-4a5f-a77d-faa2116c345d
+ref table dim_product
+ref table dim_customer
+ref table fact_sales
+ref table dim_date
+ref table dim_country
+ref table _Measures
+ref table LocalDateTable_637a5f43-d46a-4501-963d-02754e626e9b
+ref table LocalDateTable_e2a6029e-054e-4aa5-8b98-c4a04b4a378f
+ref table dim_product_cost
+
+ref cultureInfo en-GB
+

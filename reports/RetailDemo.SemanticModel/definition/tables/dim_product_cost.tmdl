@@ -1,0 +1,41 @@
+table dim_product_cost
+	lineageTag: 8f2271ae-9784-498c-8d1e-01fb2fc3b80b
+
+	column StockCode
+		dataType: string
+		isNullable: false
+		lineageTag: 629222fb-31b5-4ec9-83fb-bf5b82b716de
+		sourceColumn: StockCode
+
+	column Description
+		dataType: string
+		lineageTag: 77bdcade-64b0-4e8f-8a66-7c65b412e3f1
+		sourceColumn: Description
+
+	column CostPerUnit
+		dataType: double
+		lineageTag: 68d02ff6-914b-4289-973a-1cbfd87a890f
+		sourceColumn: CostPerUnit
+
+	column Supplier
+		dataType: string
+		lineageTag: a58255a3-dd56-4d93-9298-056625948d1a
+		sourceColumn: Supplier
+
+	column ValidFrom
+		dataType: dateTime
+		lineageTag: 6a3d5792-8f0b-422f-a8f3-7e4c802c04cb
+		sourceColumn: ValidFrom
+
+	partition dim_product_cost = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\sezen\Projects\RetailDemo\retail-self-refreshing-report\data\reference\product_costs.csv"), [Delimiter=",", Encoding=65001]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers", {{"stock_code", type text}, {"description", type text}, {"cost_per_unit", type number}, {"supplier", type text}, {"valid_from", type date}}, "en-US"),
+				    #"Renamed Columns" = Table.RenameColumns(#"Changed Type", {{"stock_code", "StockCode"}, {"description", "Description"}, {"cost_per_unit", "CostPerUnit"}, {"supplier", "Supplier"}, {"valid_from", "ValidFrom"}}),
+				    #"Normalized StockCode" = Table.TransformColumns(#"Renamed Columns", {{"StockCode", each Text.Upper(Text.Trim(_)), type text}})
+				in
+				    #"Normalized StockCode"
+

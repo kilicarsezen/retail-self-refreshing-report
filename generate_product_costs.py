@@ -40,6 +40,13 @@ SUPPLIERS = (
 MIN_COST_RATIO = 0.40
 MAX_COST_RATIO = 0.60
 
+# Shipping is charged on to the customer but paid to a carrier. Small retailers
+# recover most of it and occasionally a little more, so cost sits close to the
+# amount charged rather than at goods-style margins.
+SHIPPING_CODES = ("POST", "DOT", "C2")
+MIN_SHIPPING_COST_RATIO = 0.80
+MAX_SHIPPING_COST_RATIO = 1.05
+
 SEED = 20091201
 VALID_FROM = "2009-12-01"
 
@@ -61,9 +68,10 @@ def load_monthly_files(directories: list[Path]) -> pd.DataFrame:
     print(f"Read {len(files)} monthly files.")
 
     rows = pd.concat(frames, ignore_index=True)
-    rows["StockCode"] = rows["StockCode"].astype(str).str.strip()
+    rows["StockCode"] = rows["StockCode"].astype(str).str.strip().str.upper()
     rows["InvoiceDate"] = pd.to_datetime(rows["InvoiceDate"])
-    return rows.loc[rows["StockCode"].str.match(PRODUCT_CODE)].copy()
+    is_costable = rows["StockCode"].str.match(PRODUCT_CODE) | rows["StockCode"].isin(SHIPPING_CODES)
+    return rows.loc[is_costable].copy()
 
 
 def canonical_descriptions(products: pd.DataFrame) -> pd.Series:
@@ -126,7 +134,10 @@ def build_cost_table(products: pd.DataFrame) -> pd.DataFrame:
     rng = random.Random(SEED)
     records = []
     for stock_code, row in products.iterrows():
-        ratio = rng.uniform(MIN_COST_RATIO, MAX_COST_RATIO)
+        if stock_code in SHIPPING_CODES:
+            ratio = rng.uniform(MIN_SHIPPING_COST_RATIO, MAX_SHIPPING_COST_RATIO)
+        else:
+            ratio = rng.uniform(MIN_COST_RATIO, MAX_COST_RATIO)
         cost = round(float(row["typical_price"]) * ratio, 2)
         records.append(
             {
@@ -145,7 +156,7 @@ def main() -> None:
     parser.add_argument("--raw-dir", type=Path, default=Path("data/raw"))
     parser.add_argument("--archive-dir", type=Path, default=Path("archive"))
     parser.add_argument("--output", type=Path, default=Path("data/reference/product_costs.csv"))
-    parser.add_argument("--limit", type=int, default=200)
+    parser.add_argument("--limit", type=int, default=10000)
     args = parser.parse_args()
 
     products = load_monthly_files([args.raw_dir, args.archive_dir])

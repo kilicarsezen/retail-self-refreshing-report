@@ -1,0 +1,18 @@
+table dim_country
+	lineageTag: bd80402e-46c7-4738-bbe4-8ce8325e5fb0
+
+	column Country
+		dataType: string
+		lineageTag: 6154765f-be0c-41a8-8c1b-002e454c03cc
+		sourceColumn: Country
+
+	partition dim_country = m
+		mode: import
+		source =
+				let
+				    Source = Retail_Stage,
+				    #"Kept Country" = Table.SelectColumns(Source, {"Country"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Kept Country")
+				in
+				    #"Removed Duplicates"
+

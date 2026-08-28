@@ -1,3 +1,16 @@
+"""Seed data/raw/ with monthly CSVs, mimicking the client's real monthly exports.
+
+The production pipeline expects one CSV per calendar month landing in data/raw/, with
+no built-in overlap between files (see power_query_cleaning_guide.md). The historical
+Online Retail II data doesn't come that way -- it's two overlapping yearly sheets in a
+single xlsx workbook -- so this script resolves that overlap once (§7.0 in
+reports/analysis_report.md) and splits the result into the monthly-file shape the demo
+needs. Power Query itself never sees the two-sheet workbook; it only ever reads
+data/raw/*.csv, exactly like it will when new monthly files are dropped in for real.
+
+Run once to seed the demo; not part of the production refresh path.
+"""
+
 from __future__ import annotations
 
 import argparse

@@ -1,0 +1,205 @@
+table Retail_Stage
+	lineageTag: a5d1af20-d8c4-49a6-ad1a-01d06d1f77d1
+
+	column 'Source.Name'
+		dataType: string
+		lineageTag: f3bb4727-202e-42f1-af8f-c4156327a948
+		summarizeBy: none
+		sourceColumn: Source.Name
+
+		annotation SummarizationSetBy = Automatic
+
+	column Invoice
+		dataType: string
+		lineageTag: 156b8624-47fe-4b0d-882a-d37d2cee237f
+		summarizeBy: none
+		sourceColumn: Invoice
+
+		annotation SummarizationSetBy = Automatic
+
+	column StockCode
+		dataType: string
+		lineageTag: 69e5c7b8-0c66-4220-85e3-0996e6ace57e
+		summarizeBy: none
+		sourceColumn: StockCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column Quantity
+		dataType: int64
+		lineageTag: 2f182b54-5507-4b0c-8d2d-ee62133828ed
+		summarizeBy: sum
+		sourceColumn: Quantity
+
+		annotation SummarizationSetBy = Automatic
+
+	column InvoiceDate
+		dataType: dateTime
+		lineageTag: 863d56a0-7bb6-4690-8741-7630a4b5ea13
+		summarizeBy: none
+		sourceColumn: InvoiceDate
+
+		variation Variation
+			isDefault
+			relationship: 190670e1-46ce-4d98-a336-bd56661df3d1
+			defaultHierarchy: LocalDateTable_0ea7fd24-f4cf-4a5f-a77d-faa2116c345d.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+	column Price
+		dataType: double
+		lineageTag: 022d36ec-1658-4f1d-a54c-0688e01ea0c6
+		summarizeBy: sum
+		sourceColumn: Price
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Customer ID'
+		dataType: int64
+		lineageTag: ff67038b-406b-4c26-83ca-f4e01475670c
+		summarizeBy: count
+		sourceColumn: Customer ID
+
+		annotation SummarizationSetBy = Automatic
+
+	column Country
+		dataType: string
+		lineageTag: e32fe18f-baea-4022-a449-a1a8f9a15bdb
+		summarizeBy: none
+		sourceColumn: Country
+
+		annotation SummarizationSetBy = Automatic
+
+	column Revenue
+		dataType: double
+		lineageTag: 9403cee6-8f83-479c-b54a-ae003369e0cd
+		summarizeBy: sum
+		sourceColumn: Revenue
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsCancelled
+		dataType: boolean
+		lineageTag: da80b64e-b8df-44d1-94cc-5220100812d2
+		summarizeBy: none
+		sourceColumn: IsCancelled
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsBadDebtAdjustment
+		dataType: boolean
+		lineageTag: 8ac8b2d0-3870-4ec3-a93a-8024769df66e
+		summarizeBy: none
+		sourceColumn: IsBadDebtAdjustment
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsStockAdjustment
+		dataType: boolean
+		lineageTag: 9783c718-e557-4222-afbd-52352f173718
+		summarizeBy: none
+		sourceColumn: IsStockAdjustment
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsStockWritein
+		dataType: boolean
+		lineageTag: c18c5e96-cedf-4108-9e7a-fa336675dc6d
+		summarizeBy: none
+		sourceColumn: IsStockWritein
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsFreeItem
+		dataType: boolean
+		lineageTag: c484a364-156d-4694-81c9-a025925afbdb
+		summarizeBy: none
+		sourceColumn: IsFreeItem
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: c78d5475-3629-4e78-b21a-28281bfaa400
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsNonProductCode
+		dataType: boolean
+		lineageTag: d5e4f738-80df-44dd-9564-95f1aa371dd5
+		summarizeBy: none
+		sourceColumn: IsNonProductCode
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsNonCountry
+		dataType: boolean
+		lineageTag: 785b83c5-3c1a-48fd-8a62-11c3e211244c
+		summarizeBy: none
+		sourceColumn: IsNonCountry
+
+		annotation SummarizationSetBy = Automatic
+
+	column GroupCount
+		dataType: int64
+		lineageTag: 1f9df50b-8a6d-4c2e-ac73-e5eccf525088
+		summarizeBy: sum
+		sourceColumn: GroupCount
+
+		annotation SummarizationSetBy = Automatic
+
+	column IsDuplicateLine
+		dataType: boolean
+		lineageTag: 1601d9e9-8a23-45a6-bbd8-c8275ab614a9
+		summarizeBy: none
+		sourceColumn: IsDuplicateLine
+
+		annotation SummarizationSetBy = Automatic
+
+	column Description
+		dataType: string
+		lineageTag: 2d08d86c-f57d-4b02-a314-801a7f86666d
+		summarizeBy: none
+		sourceColumn: Description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Retail_Combined = m
+		mode: import
+		source =
+				let
+				    Source = Folder.Files("C:\Users\sezen\Projects\RetailDemo\retail-self-refreshing-report\data\raw"),
+				    #"Filtered Rows" = Table.SelectRows(Source, each [Extension] = ".csv"),
+				    #"Parsed Files" = Table.AddColumn(#"Filtered Rows", "ParsedTable", each Table.PromoteHeaders(Csv.Document([Content], [Delimiter=",", Encoding=65001]), [PromoteAllScalars=true])),
+				    #"Kept Name and Table" = Table.SelectColumns(#"Parsed Files", {"Name", "ParsedTable"}),
+				    #"Renamed Source Name" = Table.RenameColumns(#"Kept Name and Table", {{"Name", "Source.Name"}}),
+				    #"Expanded ParsedTable" = Table.ExpandTableColumn(#"Renamed Source Name", "ParsedTable", {"Invoice", "StockCode", "Description", "Quantity", "InvoiceDate", "Price", "Customer ID", "Country"}, {"Invoice", "StockCode", "Description", "Quantity", "InvoiceDate", "Price", "Customer ID", "Country"}),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Expanded ParsedTable", {{"Source.Name", type text}, {"Invoice", type text}, {"StockCode", type text}, {"Description", type text}, {"Quantity", Int64.Type}, {"InvoiceDate", type datetime}, {"Price", type number}, {"Customer ID", Int64.Type}, {"Country", type text}}, "en-US"),
+				    #"Uppercased StockCode" = Table.TransformColumns(#"Changed Type", {{"StockCode", each Text.Upper(Text.Trim(_)), type text}}),
+				    #"Added SourceFileMonth" = Table.AddColumn(#"Uppercased StockCode", "SourceFileMonth", each Text.Middle([Source.Name], 7, 7), type text),
+				    #"Added RecordMonth" = Table.AddColumn(#"Added SourceFileMonth", "RecordMonth", each Date.ToText(DateTime.Date([InvoiceDate]), "yyyy-MM", "en-US"), type text),
+				    #"Filtered Wrong-Month Rows" = Table.SelectRows(#"Added RecordMonth", each [SourceFileMonth] = [RecordMonth]),
+				    #"Removed Helper Columns" = Table.RemoveColumns(#"Filtered Wrong-Month Rows", {"SourceFileMonth", "RecordMonth"}),
+				    #"Added Revenue" = Table.AddColumn(#"Removed Helper Columns", "Revenue", each [Quantity] * [Price], type number),
+				    #"Removed Test Rows" = Table.SelectRows(#"Added Revenue", each not List.Contains({"TEST001", "TEST002"}, [StockCode])),
+				    #"Added IsCancelled" = Table.AddColumn(#"Removed Test Rows", "IsCancelled", each Text.StartsWith(Text.Upper(Text.From([Invoice])), "C"), type logical),
+				    #"Added IsBadDebtAdjustment" = Table.AddColumn(#"Added IsCancelled", "IsBadDebtAdjustment", each Text.StartsWith(Text.Upper(Text.From([Invoice])), "A"), type logical),
+				    #"Added IsStockAdjustment" = Table.AddColumn(#"Added IsBadDebtAdjustment", "IsStockAdjustment", each [Quantity] < 0 and [IsCancelled] = false and [IsBadDebtAdjustment] = false, type logical),
+				    #"Added IsStockWritein" = Table.AddColumn(#"Added IsStockAdjustment", "IsStockWritein", each [Price] = 0 and [Quantity] > 0 and [IsCancelled] = false and [IsStockAdjustment] = false and [Customer ID] = null, type logical),
+				    #"Added IsFreeItem" = Table.AddColumn(#"Added IsStockWritein", "IsFreeItem", each [Price] = 0 and [Quantity] > 0 and [IsCancelled] = false and [IsStockAdjustment] = false and [Customer ID] <> null, type logical),
+				    #"Added Category" = Table.AddColumn(#"Added IsFreeItem", "Category", each if [IsCancelled] then "cancelled" else if [IsBadDebtAdjustment] then "bad_debt_adjustment" else if [IsStockAdjustment] then "stock_adjustment" else if [IsStockWritein] then "stock_writein" else if [IsFreeItem] then "free_item" else "normal_sale", type text),
+				    #"Added IsNonProductCode" = Table.AddColumn(#"Added Category", "IsNonProductCode", each let code = Text.From([StockCode]), len = Text.Length(code), first5 = Text.Start(code, 5), suffix = Text.Middle(code, 5), first5AreDigits = List.AllTrue(List.Transform(Text.ToList(first5), each List.Contains({"0".."9"}, _))), suffixLenOk = Text.Length(suffix) <= 4, suffixIsLetters = List.AllTrue(List.Transform(Text.ToList(suffix), each List.Contains({"a".."z","A".."Z"}, _))) in not (len >= 5 and first5AreDigits and suffixLenOk and suffixIsLetters), type logical),
+				    #"Added IsNonCountry" = Table.AddColumn(#"Added IsNonProductCode", "IsNonCountry", each List.Contains({"Unspecified", "European Community", "Channel Islands", "West Indies"}, [Country]), type logical),
+				    #"GroupCounts" = Table.Group(#"Added IsNonCountry", {"Invoice", "StockCode", "Description", "Quantity", "InvoiceDate", "Price", "Customer ID", "Country"}, {{"GroupCount", each Table.RowCount(_), Int64.Type}}),
+				    #"Merged Group Counts" = Table.NestedJoin(#"Added IsNonCountry", {"Invoice", "StockCode", "Description", "Quantity", "InvoiceDate", "Price", "Customer ID", "Country"}, #"GroupCounts", {"Invoice", "StockCode", "Description", "Quantity", "InvoiceDate", "Price", "Customer ID", "Country"}, "GroupCountTable", JoinKind.LeftOuter),
+				    #"Expanded GroupCount" = Table.ExpandTableColumn(#"Merged Group Counts", "GroupCountTable", {"GroupCount"}, {"GroupCount"}),
+				    #"Added IsDuplicateLine" = Table.AddColumn(#"Expanded GroupCount", "IsDuplicateLine", each [GroupCount] > 1, type logical)
+				in
+				    #"Added IsDuplicateLine"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
